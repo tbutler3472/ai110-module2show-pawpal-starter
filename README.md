@@ -60,7 +60,7 @@ Luna         Brush coat                15 min       Low
 
 ```bash
 # Run the full test suite:
-pytest
+python -m pytest
 
 # Run with coverage:
 pytest --cov
@@ -69,8 +69,21 @@ pytest --cov
 Sample test output:
 
 ```
-# Paste your pytest output here
+==================================== test session starts ====================================
+platform win32 -- Python 3.13.1, pytest-9.1.1, pluggy-1.6.0
+rootdir: C:\Users\tyeso\OneDrive\Documents\pawpal\ai110-module2show-pawpal-starter
+plugins: anyio-4.13.0
+collected 19 items                                                                           
+
+tests\test_pawpal.py ...................                                               [100%]
+
+==================================== 19 passed in 0.20s =====================================
 ```
+Test Coverage: 
+The 19 test cover the main features of the PawPal system which includes sorting task by time, filtering task, detecting scheduling conflicts and more. The test not only cover the main features but they also check edge cases like having no task, completing task, making sure they fit with the owners availble time.
+
+Confidence Level: 
+My confidence level is a 4/5 stars because all 19 of the test pass and all the main features tested work how they are intended to work. The reason it's not 5 stars however is because I believe there are still situations that weren't tested so more testing would help increase the confidence score to 5 stars. 
 
 ## 📐 Smarter Scheduling
 

@@ -61,6 +61,15 @@ def test_owner_get_tasks_filters_by_pet_and_completion() -> None:
     ]
 
 
+def test_owner_with_no_pets_has_no_tasks_or_schedule_or_conflicts() -> None:
+    owner = Owner("Jordan", available_minutes=30)
+    scheduler = Scheduler()
+
+    assert owner.get_tasks() == []
+    assert scheduler.generate_schedule(owner) == []
+    assert scheduler.detect_conflicts(owner) == []
+
+
 def test_generate_schedule_remains_priority_based() -> None:
     owner = Owner("Jordan", available_minutes=30)
     pet = Pet("Mochi", "dog")
@@ -74,6 +83,29 @@ def test_generate_schedule_remains_priority_based() -> None:
         high_priority_late,
         low_priority_early,
     ]
+
+
+def test_generate_schedule_includes_task_that_exactly_fits_available_time() -> None:
+    owner = Owner("Jordan", available_minutes=20)
+    pet = Pet("Mochi", "dog")
+    task = Task("Walk", 20, "high")
+    pet.add_task(task)
+    owner.add_pet(pet)
+
+    assert Scheduler().generate_schedule(owner) == [task]
+
+
+def test_generate_schedule_excludes_completed_tasks() -> None:
+    owner = Owner("Jordan", available_minutes=30)
+    pet = Pet("Mochi", "dog")
+    completed_task = Task("Breakfast", 10, "high")
+    completed_task.mark_complete()
+    pending_task = Task("Walk", 20, "medium")
+    pet.add_task(completed_task)
+    pet.add_task(pending_task)
+    owner.add_pet(pet)
+
+    assert Scheduler().generate_schedule(owner) == [pending_task]
 
 
 @pytest.mark.parametrize(
@@ -124,6 +156,24 @@ def test_completing_recurring_task_twice_does_not_duplicate_occurrence() -> None
     assert first_occurrence is not None
     assert second_result is None
     assert pet.tasks == [task, first_occurrence]
+
+
+def test_completing_daily_task_without_due_date_schedules_next_day() -> None:
+    pet = Pet("Mochi", "dog")
+    task = Task("Daily feeding", 5, "high", frequency="daily")
+    pet.add_task(task)
+    before_completion = datetime.now()
+
+    next_task = pet.complete_task(task)
+
+    after_completion = datetime.now()
+
+    assert next_task is not None
+    assert task.completed is True
+    assert next_task.due_date is not None
+    assert before_completion + timedelta(days=1) <= next_task.due_date
+    assert next_task.due_date <= after_completion + timedelta(days=1)
+    assert pet.tasks == [task, next_task]
 
 
 def test_completing_one_time_task_does_not_repeat() -> None:
@@ -178,6 +228,22 @@ def test_scheduler_detects_same_time_conflicts_across_pets() -> None:
     assert "Mochi" in warnings[0]
     assert "Medication" in warnings[0]
     assert "Luna" in warnings[0]
+
+
+def test_scheduler_detects_same_time_conflict_within_one_pet() -> None:
+    pet = Pet("Mochi", "dog")
+    pet.add_task(Task("Breakfast", 10, "medium", scheduled_time="08:00"))
+    pet.add_task(Task("Medication", 5, "high", scheduled_time="08:00"))
+    owner = Owner("Jordan")
+    owner.add_pet(pet)
+
+    warnings = Scheduler().detect_conflicts(owner)
+
+    assert len(warnings) == 1
+    assert "08:00" in warnings[0]
+    assert "unspecified date" in warnings[0]
+    assert "Breakfast" in warnings[0]
+    assert "Medication" in warnings[0]
 
 
 def test_scheduler_ignores_different_times_and_unscheduled_tasks() -> None:
