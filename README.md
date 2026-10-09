@@ -74,14 +74,19 @@ Sample test output:
 
 ## 📐 Smarter Scheduling
 
-> Fill in once you've implemented scheduling logic.
+PawPal+ includes these scheduling features:
 
-| Feature | Method(s) | Notes |
-|---------|-----------|-------|
-| Task sorting | | e.g., by priority, duration |
-| Filtering | | e.g., skip tasks if time runs out |
-| Conflict handling | | e.g., overlapping time slots |
-| Recurring tasks | | e.g., daily vs. weekly |
+- **Sorting — `Scheduler.sort_by_time()`**: Sorts tasks by their scheduled
+  `HH:MM` time. Tasks without a scheduled time appear last.
+- **Filtering — `Owner.get_tasks()`**: Returns all tasks or filters them by pet
+  name, completion status, or both. Pet-name matching ignores letter case.
+- **Recurring tasks — `Pet.complete_task()`**: Completing a daily or weekly task
+  creates a new incomplete occurrence due one or seven days later. One-time tasks
+  are not repeated, and completing the same task again does not create another
+  occurrence.
+- **Conflict detection — `Scheduler.detect_conflicts()`**: Returns warning
+  messages when tasks share an exact scheduled time and due date, including
+  tasks belonging to different pets. Tasks without a scheduled time are ignored.
 
 ## 📸 Demo Walkthrough
 

@@ -1,11 +1,13 @@
 # PawPal+ Project Reflection
 
 ## 1. System Design
+
 Manage Pet Profiles: Allow the users to create and update pet information
 Customize Pet Care Task: Allow users to set task with specific preferences and priorities 
 Generate a Personalized Daily Plan: Allows users to create and view schedule that explains why certain task were prioritized based on avaibility. 
 
 **a. Initial design**
+
 1. The initial UML diagram took four classes: Owner, Pet, Scheduler, and Task. The Owner has pets, the Pet has tasks that need to be completed, and the Scheduler organizes those tasks.
 
 2. The responsibilities for each class are that the Task class stores tasks based on their duration and priority. The Scheduler takes those tasks and uses them to generate a schedule based on the owner's availability, as well as explain the tasks. The Pet class stores the pet's name and species, and the Owner class manages the pets and makes updates to their information and preferences.
@@ -13,7 +15,8 @@ Generate a Personalized Daily Plan: Allows users to create and view schedule tha
 - What classes did you include, and what responsibilities did you assign to each?
 
 **b. Design changes**
-Yes, after reviewing my initial design with AI, I added the available_minutes attribute to the Owner class. The reason I made this change is because in the original design it did not consider how much time the owner had available when organizing tasks. So by adding this attribute it will now allow the Scheduler to use the owner's available time when creating a daily schedule.
+
+Yes I did make a change after reviewing my initial design with AI, I added the available_minutes attribute to the Owner class. The reason I made this change is because in the original design it did not consider how much time the owner had available when organizing tasks. So by adding this attribute it will now allow the Scheduler to use the owner's available time when creating a daily schedule.
 - Did your design change during implementation?
 - If yes, describe at least one change and why you made it.
 
@@ -26,11 +29,15 @@ Yes, after reviewing my initial design with AI, I added the available_minutes at
 - What constraints does your scheduler consider (for example: time, priority, preferences)?
 - How did you decide which constraints mattered most?
 
+1. The Constraints my scheduler considers is the amount of time the owner has available as well as task duration, priority, and due dates. Making the highest priority task highest priority while still making the task fit the availible time. 
+2. I decided that the task priority mattered the most because the whole point of putting priority order on task is to complete them first or get them done as fast as possible. So to me it made most sense to make this the emphasis seeing how this was a major reason for the schedule in the first place 
 **b. Tradeoffs**
 
 - Describe one tradeoff your scheduler makes.
 - Why is that tradeoff reasonable for this scenario?
 
+1. One tradeoff my scheduler makes is that it only detects a conflict when they have the same date and start time it doesn't check if two things with different times will overlap 
+2. I thinks its reasonable because it keeps the app simple while still being able to function properly. As it's still able to identify basic scheduling conflicts without the need for a complicated algorithm. 
 ---
 
 ## 3. AI Collaboration
