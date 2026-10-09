@@ -1,0 +1,28 @@
+classDiagram
+    class Owner {
+        +String name
+        +String preferences
+        +addPet(pet: Pet) void
+        +updatePet(pet: Pet) void
+    }
+
+    class Pet {
+        +String name
+        +String species
+        +addTask(task: Task) void
+    }
+
+    class Task {
+        +String title
+        +int durationMinutes
+        +String priority
+    }
+
+    class Scheduler {
+        +generateSchedule() void
+        +explainTask(task: Task) String
+    }
+
+    Owner "1" o-- "0..*" Pet : has
+    Pet "1" *-- "0..*" Task : needs
+    Scheduler ..> "0..*" Task : organizes
