@@ -1,14 +1,19 @@
 # PawPal+ Project Reflection
 
 ## 1. System Design
+Manage Pet Profiles: Allow the users to create and update pet information
+Customize Pet Care Task: Allow users to set task with specific preferences and priorities 
+Generate a Personalized Daily Plan: Allows users to create and view schedule that explains why certain task were prioritized based on avaibility. 
 
 **a. Initial design**
+1. The initial UML diagram took four classes: Owner, Pet, Scheduler, and Task. The Owner has pets, the Pet has tasks that need to be completed, and the Scheduler organizes those tasks.
 
+2. The responsibilities for each class are that the Task class stores tasks based on their duration and priority. The Scheduler takes those tasks and uses them to generate a schedule based on the owner's availability, as well as explain the tasks. The Pet class stores the pet's name and species, and the Owner class manages the pets and makes updates to their information and preferences.
 - Briefly describe your initial UML design.
 - What classes did you include, and what responsibilities did you assign to each?
 
 **b. Design changes**
-
+Yes, after reviewing my initial design with AI, I added the available_minutes attribute to the Owner class. The reason I made this change is because in the original design it did not consider how much time the owner had available when organizing tasks. So by adding this attribute it will now allow the Scheduler to use the owner's available time when creating a daily schedule.
 - Did your design change during implementation?
 - If yes, describe at least one change and why you made it.
 
