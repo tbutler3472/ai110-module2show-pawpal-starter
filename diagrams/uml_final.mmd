@@ -1,0 +1,43 @@
+classDiagram
+    class Owner {
+        +name: str
+        +preferences: str
+        +available_minutes: int
+        +pets: list[Pet]
+        +add_pet(pet: Pet) : void
+        +update_pet(pet: Pet) : void
+        +get_tasks(pet_name: str | None = None, completed: bool | None = None) : list[Task]
+    }
+
+    class Pet {
+        +name: str
+        +species: str
+        +tasks: list[Task]
+        +add_task(task: Task) : void
+        +complete_task(task: Task) : Task | None
+    }
+
+    class Task {
+        +title: str
+        +duration_minutes: int
+        +priority: str
+        +description: str
+        +frequency: str
+        +completed: bool
+        +scheduled_time: str | None
+        +due_date: datetime | None
+        +update_priority(priority: str) : void
+        +mark_complete() : void
+    }
+
+    class Scheduler {
+        +sort_by_time(tasks: list[Task]) : list[Task]
+        +detect_conflicts(owner: Owner) : list[str]
+        +generate_schedule(owner: Owner) : list[Task]
+        +explain_task(task: Task) : str
+    }
+
+    Owner "1" o-- "0..*" Pet : owns
+    Pet "1" *-- "0..*" Task : contains
+    Scheduler ..> Owner : evaluates
+    Scheduler ..> Task : orders / explains
