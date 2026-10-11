@@ -4,6 +4,9 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 
 
+_PRIORITY_ORDER = {"high": 0, "medium": 1, "low": 2}
+
+
 class Owner:
     def __init__(
         self, name: str, preferences: str = "", available_minutes: int = 0
@@ -84,7 +87,7 @@ class Pet:
 class Task:
     title: str
     duration_minutes: int
-    priority: str
+    priority: str = "medium"
     description: str = ""
     frequency: str = ""
     completed: bool = False
@@ -106,6 +109,17 @@ class Scheduler:
         return sorted(
             tasks,
             key=lambda task: (
+                not task.scheduled_time,
+                task.scheduled_time or "",
+            ),
+        )
+
+    def sort_by_priority(self, tasks: list[Task]) -> list[Task]:
+        """Sort by priority (high to low), then scheduled time."""
+        return sorted(
+            tasks,
+            key=lambda task: (
+                _PRIORITY_ORDER.get(task.priority.casefold(), len(_PRIORITY_ORDER)),
                 not task.scheduled_time,
                 task.scheduled_time or "",
             ),
@@ -141,7 +155,6 @@ class Scheduler:
 
     def generate_schedule(self, owner: Owner) -> list[Task]:
         """Return prioritized unfinished tasks that fit the owner's available time."""
-        priority_order = {"high": 0, "medium": 1, "low": 2}
         today = datetime.now().date()
         pending_tasks = [
             task for task in owner.get_tasks()
@@ -153,7 +166,9 @@ class Scheduler:
         ]
         ordered_tasks = sorted(
             pending_tasks,
-            key=lambda task: priority_order.get(task.priority.lower(), len(priority_order)),
+            key=lambda task: _PRIORITY_ORDER.get(
+                task.priority.lower(), len(_PRIORITY_ORDER)
+            ),
         )
 
         schedule: list[Task] = []

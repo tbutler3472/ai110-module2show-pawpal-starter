@@ -37,6 +37,56 @@ def test_scheduler_sorts_tasks_by_scheduled_time() -> None:
     assert tasks == [earlier_task, later_task, unscheduled_task]
 
 
+def test_task_priority_defaults_to_medium() -> None:
+    task = Task("Breakfast", 10)
+
+    assert task.priority == "medium"
+
+
+def test_scheduler_sorts_tasks_by_priority_before_time() -> None:
+    low_priority_early = Task("Play", 15, "low", scheduled_time="06:00")
+    medium_priority_early = Task("Breakfast", 10, "medium", scheduled_time="07:00")
+    high_priority_late = Task("Walk", 20, "high", scheduled_time="09:00")
+
+    tasks = Scheduler().sort_by_priority(
+        [low_priority_early, medium_priority_early, high_priority_late]
+    )
+
+    assert tasks == [
+        high_priority_late,
+        medium_priority_early,
+        low_priority_early,
+    ]
+
+
+def test_scheduler_sorts_by_time_within_each_priority() -> None:
+    high_priority_late = Task("Walk", 20, "HIGH", scheduled_time="09:00")
+    high_priority_early = Task("Medication", 5, "high", scheduled_time="08:00")
+    high_priority_unscheduled = Task("Checkup", 15, "high")
+
+    tasks = Scheduler().sort_by_priority(
+        [high_priority_late, high_priority_unscheduled, high_priority_early]
+    )
+
+    assert tasks == [
+        high_priority_early,
+        high_priority_late,
+        high_priority_unscheduled,
+    ]
+
+
+def test_sort_by_time_remains_chronological_with_default_priority() -> None:
+    later_task = Task("Walk", 20, "high", scheduled_time="09:00")
+    default_priority_task = Task("Breakfast", 10, scheduled_time="07:30")
+    unscheduled_task = Task("Play", 15, "low")
+
+    tasks = Scheduler().sort_by_time(
+        [later_task, unscheduled_task, default_priority_task]
+    )
+
+    assert tasks == [default_priority_task, later_task, unscheduled_task]
+
+
 def test_owner_get_tasks_filters_by_pet_and_completion() -> None:
     owner = Owner("Jordan")
     mochi = Pet("Mochi", "dog")

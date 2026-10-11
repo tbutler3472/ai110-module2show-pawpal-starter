@@ -3,6 +3,39 @@ from datetime import datetime
 from pawpal_system import Owner, Pet, Scheduler, Task
 
 
+def print_section(title: str, marker: str) -> None:
+    """Print a consistently formatted section heading."""
+    heading = f"[{marker}] {title}"
+    print(f"\n{heading}")
+    print("-" * len(heading))
+
+
+def print_table(headers: tuple[str, ...], rows: list[tuple[str, ...]]) -> None:
+    """Print rows as a readable, dependency-free CLI table."""
+    widths = [
+        max(len(header), *(len(row[index]) for row in rows))
+        for index, header in enumerate(headers)
+    ]
+    border = "+" + "+".join("-" * (width + 2) for width in widths) + "+"
+
+    print(border)
+    print(
+        "| "
+        + " | ".join(
+            header.ljust(width) for header, width in zip(headers, widths)
+        )
+        + " |"
+    )
+    print(border)
+    for row in rows:
+        print(
+            "| "
+            + " | ".join(value.ljust(width) for value, width in zip(row, widths))
+            + " |"
+        )
+    print(border)
+
+
 owner = Owner("Jordan", available_minutes=90)
 today = datetime.now()
 
@@ -44,7 +77,8 @@ luna.add_task(one_time_task)
 owner.add_pet(mochi)
 owner.add_pet(luna)
 
-print("Recurring Task Completion")
+print_section("Recurring Task Completion", "RECURRING")
+completion_rows = []
 for pet, task in (
     (mochi, daily_task),
     (mochi, weekly_task),
@@ -53,21 +87,22 @@ for pet, task in (
 ):
     next_task = pet.complete_task(task)
     if next_task is None:
-        print(f"- {task.title}: completed; no repeat created")
+        outcome = "[COMPLETE]"
+        next_due = "No repeat"
     else:
-        print(
-            f"- {task.title}: completed; next due "
-            f"{next_task.due_date:%Y-%m-%d}"
-        )
+        outcome = "[COMPLETE]"
+        next_due = f"{next_task.due_date:%Y-%m-%d}"
+    completion_rows.append((task.title, outcome, next_due))
+print_table(("Task", "Status", "Next due"), completion_rows)
 
 scheduler = Scheduler()
-print("\nScheduling Conflict Warnings")
+print_section("Scheduling Conflict Warnings", "WARNINGS")
 conflict_warnings = scheduler.detect_conflicts(owner)
 if conflict_warnings:
     for warning in conflict_warnings:
-        print(f"- {warning}")
+        print(f"WARNING: {warning}")
 else:
-    print("- No scheduling conflicts.")
+    print("[OK] No scheduling conflicts.")
 
 pet_names_by_task_id = {
     id(task): pet.name
@@ -75,37 +110,74 @@ pet_names_by_task_id = {
     for task in pet.tasks
 }
 
-print("Tasks Sorted by Scheduled Time")
-print("=" * 72)
-print(f"{'Time':<10} {'Pet':<12} {'Task':<24} {'Status'}")
-print("-" * 72)
+print_section("Tasks Sorted by Scheduled Time", "TASKS")
+sorted_task_rows = []
 for task in scheduler.sort_by_time(owner.get_tasks()):
     pet_name = pet_names_by_task_id[id(task)]
     scheduled_time = task.scheduled_time or "Unscheduled"
-    status = "Complete" if task.completed else "Pending"
-    print(f"{scheduled_time:<10} {pet_name:<12} {task.title:<24} {status}")
+    status = "[COMPLETE]" if task.completed else "[PENDING]"
+    sorted_task_rows.append((scheduled_time, pet_name, task.title, status))
+print_table(("Time", "Pet", "Task", "Status"), sorted_task_rows)
 
-print("\nTasks Filtered by Pet (Mochi)")
-for task in owner.get_tasks(pet_name="Mochi"):
-    print(f"- {task.title}")
+print_section("Tasks Sorted by Priority", "PRIORITY")
+priority_task_rows = []
+for task in scheduler.sort_by_priority(owner.get_tasks()):
+    pet_name = pet_names_by_task_id[id(task)]
+    priority_task_rows.append(
+        (
+            task.priority.title(),
+            task.scheduled_time or "Unscheduled",
+            pet_name,
+            task.title,
+            "[COMPLETE]" if task.completed else "[PENDING]",
+        )
+    )
+print_table(
+    ("Priority", "Time", "Pet", "Task", "Status"),
+    priority_task_rows,
+)
 
-print("\nTasks Filtered by Completion Status (Complete)")
-for task in owner.get_tasks(completed=True):
-    print(f"- {task.title}")
+print_section("Tasks Filtered by Pet (Mochi)", "FILTER")
+mochi_tasks = owner.get_tasks(pet_name="Mochi")
+print_table(("Task", "Status"), [
+    (task.title, "[COMPLETE]" if task.completed else "[PENDING]")
+    for task in mochi_tasks
+])
 
-print("\nMochi's Incomplete Tasks (Combined Filters)")
-for task in owner.get_tasks(pet_name="Mochi", completed=False):
-    print(f"- {task.title}")
+print_section("Tasks Filtered by Completion Status (Complete)", "FILTER")
+completed_tasks = owner.get_tasks(completed=True)
+print_table(("Pet", "Task"), [
+    (pet_names_by_task_id[id(task)], task.title)
+    for task in completed_tasks
+])
+
+print_section("Mochi's Incomplete Tasks (Combined Filters)", "FILTER")
+mochi_incomplete_tasks = owner.get_tasks(pet_name="Mochi", completed=False)
+print_table(("Task", "Status"), [
+    (task.title, "[PENDING]")
+    for task in mochi_incomplete_tasks
+])
 
 schedule = scheduler.generate_schedule(owner)
 
-print("Today's Schedule")
-print("=" * 72)
-print(f"{'Time':<10} {'Pet':<12} {'Task':<24} {'Duration':<12} {'Priority'}")
-print("-" * 72)
+print_section("Today's Schedule", "SCHEDULE")
+schedule_rows = []
 for task in scheduler.sort_by_time(schedule):
     pet_name = pet_names_by_task_id[id(task)]
-    print(
-        f"{task.scheduled_time or 'Unscheduled':<10} {pet_name:<12} {task.title:<24} "
-        f"{task.duration_minutes:>3} min       {task.priority.title()}"
+    schedule_rows.append(
+        (
+            task.scheduled_time or "Unscheduled",
+            pet_name,
+            task.title,
+            f"{task.duration_minutes} min",
+            task.priority.title(),
+            "[PENDING]",
+        )
     )
+if schedule_rows:
+    print_table(
+        ("Time", "Pet", "Task", "Duration", "Priority", "Status"),
+        schedule_rows,
+    )
+else:
+    print("[INFO] No unfinished tasks fit within the available time.")
